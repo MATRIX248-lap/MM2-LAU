@@ -1,0 +1,182 @@
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local espPart = {}
+local teleportMenu = nil
+
+-- 1. Auto Kill (القاتل الذكي)
+local function AutoKill()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("Knife") then
+            -- التحقق إذا كان اللاعب يحمل سكين
+            mouse.Target = v.Character.HumanoidRootPart
+            mouse.Button1Down:Fire()
+        end
+    end
+end
+
+-- 2. ESP متطور
+local function ESP()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Character then
+            if not espPart[v.Name] then
+                espPart[v.Name] = Instance.new("BillboardGui")
+                espPart[v.Name].Size = UDim2.new(0, 100, 0, 50)
+                espPart[v.Name].Adornee = v.Character.Head
+                espPart[v.Name].Parent = v.Character
+
+                local label = Instance.new("TextLabel", espPart[v.Name])
+                label.Size = UDim2.new(1, 0, 1, 0)
+                label.BackgroundTransparency = 1
+
+                if v.Name == "Murderer" then
+                    label.Text = "القاتل"
+                    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+                elseif v.Name == "Sheriff" then
+                    label.Text = "الشريف"
+                    label.TextColor3 = Color3.fromRGB(0, 0, 255)
+                else
+                    label.Text = "لاعب عادي"
+                    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+                end
+            end
+        end
+    end
+end
+
+-- 3. Silent Aim للسكين
+local function SilentAim()
+    if player.Character and player.Character:FindFirstChild("Knife") then
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                -- توجيه السكين تلقائيًا نحو أقرب لاعب
+                local targetPosition = v.Character.HumanoidRootPart.Position
+                local knife = player.Character.Knife
+                knife.CFrame = CFrame.new(knife.Position, targetPosition)
+            end
+        end
+    end
+end
+
+-- 4. Auto Coin Farm
+local function AutoCoinFarm()
+    for _, coin in pairs(workspace.Coins:GetChildren()) do
+        if coin:IsA("Part") then
+            coin.CFrame = player.Character.HumanoidRootPart.CFrame
+        end
+    end
+end
+
+-- 5. Auto Sheriff Mode
+local function AutoSheriff()
+    local sheriff = nil
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Name == "Sheriff" then
+            sheriff = v
+            break
+        end
+    end
+    if not sheriff then
+        -- إذا مات الشريف، يصير اللاعب هو الشريف
+        local weapon = Instance.new("Tool")
+        weapon.Name = "SheriffGun"
+        weapon.Parent = player.Backpack
+    end
+end
+
+-- 6. Anti Murder Detection
+local function AntiMurderDetection()
+    game.Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function(character)
+            if character:FindFirstChild("Humanoid") then
+                character.Humanoid.Died:Connect(function()
+                    if character.Name == "Murderer" then
+                        -- إرسال تحذير في GUI
+                        print("تحذير: القاتل كشف!")
+                    end
+                end)
+            end
+        end)
+    end)
+end
+
+-- 7. Teleport Menu
+local function TeleportMenu()
+    if not teleportMenu then
+        teleportMenu = Instance.new("TextButton")
+        teleportMenu.Text = "انتقل لشخص آخر"
+        teleportMenu.MouseButton1Click:Connect(function()
+            local targetPlayer = game.Players:GetPlayers()[1]  -- تحديد اللاعب الذي تريد الانتقال إليه
+            player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+        end)
+        teleportMenu.Parent = player.PlayerGui
+    end
+end
+
+-- 8. تروولات
+local function Trolling()
+    -- إخفاء الاسم
+    player.Name = "Hidden"
+    -- جعلك شفاف
+    player.Character.HumanoidRootPart.Transparency = 1
+    -- الطيران
+    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+end
+
+-- 9. زر "طلقة شريف"
+local function ShootSheriff()
+    local sheriff = game.Players.LocalPlayer
+    local shootButton = Instance.new("TextButton")
+    shootButton.Text = "إطلاق الطلقة على الشريف"
+    shootButton.MouseButton1Click:Connect(function()
+        local target = sheriff.Character.HumanoidRootPart
+        -- التحقق من مسافة الطلقة
+        if (player.Character.HumanoidRootPart.Position - target.Position).Magnitude < 50 then
+            -- إطلاق الطلقة
+            print("تم إطلاق الطلقة على الشريف!")
+        end
+    end)
+    shootButton.Parent = player.PlayerGui
+end
+
+-- بناء الواجهة
+local gui = Instance.new("ScreenGui")
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 200, 0, 300)
+
+local button1 = Instance.new("TextButton", frame)
+button1.Text = "Auto Kill"
+button1.MouseButton1Click:Connect(AutoKill)
+
+local button2 = Instance.new("TextButton", frame)
+button2.Text = "ESP"
+button2.MouseButton1Click:Connect(ESP)
+
+local button3 = Instance.new("TextButton", frame)
+button3.Text = "Silent Aim"
+button3.MouseButton1Click:Connect(SilentAim)
+
+local button4 = Instance.new("TextButton", frame)
+button4.Text = "Auto Coin Farm"
+button4.MouseButton1Click:Connect(AutoCoinFarm)
+
+local button5 = Instance.new("TextButton", frame)
+button5.Text = "Auto Sheriff"
+button5.MouseButton1Click:Connect(AutoSheriff)
+
+local button6 = Instance.new("TextButton", frame)
+button6.Text = "Anti Murder Detection"
+button6.MouseButton1Click:Connect(AntiMurderDetection)
+
+local button7 = Instance.new("TextButton", frame)
+button7.Text = "Teleport Menu"
+button7.MouseButton1Click:Connect(TeleportMenu)
+
+local button8 = Instance.new("TextButton", frame)
+button8.Text = "Trolling"
+button8.MouseButton1Click:Connect(Trolling)
+
+local button9 = Instance.new("TextButton", frame)
+button9.Text = "طلقة شريف"
+button9.MouseButton1Click:Connect(ShootSheriff)
+
+gui.Parent = player.PlayerGui
